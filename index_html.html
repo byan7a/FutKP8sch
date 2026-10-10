@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-950 text-slate-100 dark" id="htmlRoot">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>38-0: Ultimate FUT Draft, League, UCL & Multiplayer</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        pitch: {
+                            950: '#020f09',
+                            900: '#052214',
+                            800: '#0b3d24',
+                            700: '#135c37',
+                            600: '#1d824f',
+                            grass: '#15803d',
+                            vibrant: '#16a34a',
+                            bright: '#22c55e'
+                        },
+                        fut: {
+                            gold: '#f3d052',
+                            goldDark: '#9a7711',
+                            cardBg: '#131927',
+                            border: 'rgba(243, 208, 82, 0.4)',
+                            glow: 'rgba(243, 208, 82, 0.6)',
+                            goat: '#38bdf8',
+                            ucl: '#1e40af'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Teko', 'Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- FontAwesome & Google Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=Teko:wght@600;700&display=swap" rel="stylesheet">
+    
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(2, 15, 9, 0.2); }
+        ::-webkit-scrollbar-thumb { background: rgba(34, 197, 94, 0.5); border-radius: 9999px; }
+
+        body { transition: background-color 0.3s ease, color 0.3s ease; }
+        .theme-dark { background-color: #020617; color: #f8fafc; }
+        .theme-light { background-color: #f1f5f9; color: #0f172a; }
+        
+        .theme-dark .glass-card { background: rgba(15, 23, 42, 0.88); backdrop-filter: blur(14px); border: 1px solid rgba(255, 255, 255, 0.12); color: #f8fafc; }
+        .theme-light .glass-card { background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(14px); border: 1px solid rgba(15, 23, 42, 0.12); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08); color: #0f172a; }
+
+        .theme-light .text-slate-400 { color: #64748b !important; }
+        .theme-light .bg-slate-900 { background-color: #e2e8f0 !important; color: #0f172a !important; }
+        .theme-light .border-slate-800 { border-color: #cbd5e1 !important; }
+
+        .glass-pitch { box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.5), 0 12px 30px rgba(0, 0, 0, 0.3); }
+        .pitch-vibrant { background: radial-gradient(circle at center, #16a34a 0%, #15803d 60%, #0b3d24 100%); border: 3px solid #22c55e; }
+        .pitch-emerald { background: linear-gradient(180deg, #059669 0%, #047857 50%, #065f46 100%); border: 3px solid #34d399; }
+        .pitch-night { background: radial-gradient(circle at center, #1e3a8a 0%, #0f172a 70%, #020617 100%); border: 3px solid #38bdf8; }
+        
+        .pitch-pattern-striped {
+            background-image: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.08) 36px, transparent 36px, transparent 72px);
+        }
+
+        .fut-card {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 2px solid #64748b;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.5);
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            overflow: hidden;
+            user-select: none;
+        }
+        .fut-card.bronze { background: linear-gradient(135deg, #78350f 0%, #451a03 100%); border-color: #b45309; color: #fef3c7; }
+        .fut-card.silver { background: linear-gradient(135deg, #475569 0%, #1e293b 100%); border-color: #94a3b8; color: #f8fafc; }
+        .fut-card.gold-rare { background: linear-gradient(135deg, #854d0e 0%, #451a03 40%, #a16207 100%); border-color: #facc15; box-shadow: 0 0 15px rgba(250, 204, 21, 0.3); color: #fef08a; }
+        .fut-card.goat-card { background: linear-gradient(135deg, #0284c7 0%, #0f172a 50%, #38bdf8 100%); border-color: #7dd3fc; color: #f0f9ff; box-shadow: 0 0 25px rgba(56, 189, 248, 0.8); }
+
+        .slot-pulse { animation: slot-glow 2s infinite ease-in-out; }
+        @keyframes slot-glow {
+            0%, 100% { border-color: rgba(34, 197, 94, 0.5); }
+            50% { border-color: rgba(34, 197, 94, 1); box-shadow: 0 0 15px rgba(34, 197, 94, 0.6); }
+        }
+    </style>
+</head>
+<body class="h-full theme-dark font-sans antialiased select-none flex flex-col justify-between overflow-x-hidden">
+
+    <canvas id="fxCanvas" class="fixed inset-0 pointer-events-none z-50"></canvas>
+
+    <!-- HEADER / WALLET HUD -->
+    <header class="w-full z-20 px-3 sm:px-6 py-3 glass-card border-b flex items-center justify-between gap-3 sticky top-0 shadow-md">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-yellow-300 text-slate-950 flex items-center justify-center font-black text-xl shadow-lg">
+                <i class="fa-solid fa-trophy"></i>
+            </div>
+            <div>
+                <h1 class="font-display text-2xl leading-none font-extrabold tracking-wider">38-0 <span class="text-amber-400 font-mono text-xs px-2 py-0.5 rounded bg-amber-950/80 border border-amber-700">ULTIMATE FUT</span></h1>
+                <p class="text-[11px] text-slate-400 font-medium hidden sm:block">Multiplayer Draft • Leagues • UCL • Nerfed Rewards</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-2 sm:gap-3">
+            <!-- User Sign In / Profile Button -->
+            <button id="btnSignInModal" class="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center gap-1.5 transition shadow">
+                <i class="fa-solid fa-user-astronaut"></i> <span id="usernameDisplay">Sign In</span>
+            </button>
+
+            <div class="flex items-center gap-2 bg-slate-900/90 border border-amber-500/40 px-3 py-1.5 rounded-xl shadow-inner">
+                <div class="w-6 h-6 rounded-full bg-amber-500/20 border border-amber-400 text-amber-400 flex items-center justify-center text-xs font-bold">
+                    <i class="fa-solid fa-sack-dollar"></i>
+                </div>
+                <div class="flex flex-col">
+                    <span class="text-[9px] text-slate-400 uppercase font-semibold leading-none">Club Funds</span>
+                    <span id="cashDisplay" class="font-mono text-amber-400 font-black text-base leading-tight">$1,000</span>
+                </div>
+            </div>
+
+            <button id="btnAutoSellToggle" title="Auto-Sell Duplicate Cards" class="px-2.5 py-1.5 rounded-xl glass-card hover:bg-slate-800 font-bold text-xs flex items-center gap-1.5 transition border border-slate-700">
+                <i id="autoSellIcon" class="fa-solid fa-arrows-rotate text-slate-400"></i>
+                <span class="hidden md:inline text-[11px]">Auto-Sell: <strong id="autoSellStateText" class="text-red-400">OFF</strong></span>
+            </button>
+
+            <button id="btnThemeToggle" title="Toggle Light/Dark Theme" class="px-2.5 py-1.5 rounded-xl glass-card hover:bg-amber-500/20 font-bold text-xs flex items-center gap-1.5 transition border border-amber-500/30 text-amber-400">
+                <i id="themeIcon" class="fa-solid fa-moon"></i>
+            </button>
+
+            <button id="btnSound" class="w-8 h-8 rounded-xl glass-card hover:bg-slate-800 text-slate-300 flex items-center justify-center transition border border-slate-700">
+                <i id="soundIcon" class="fa-solid fa-volume-high text-xs"></i>
+            </button>
+        </div>
+    </header>
+
+    <nav class="bg-slate-900/90 border-b border-slate-800 px-2 sm:px-3 py-2 flex items-center justify-center gap-1.5 sm:gap-2 text-xs font-bold overflow-x-auto">
+        <button id="tabSquad" class="tab-btn px-3 py-2 rounded-xl bg-amber-500 text-slate-950 font-black flex items-center gap-1.5 transition shadow-md whitespace-nowrap"><i class="fa-solid fa-shirt"></i> Pitch Squad</button>
+        <button id="tabMarket" class="tab-btn px-3 py-2 rounded-xl glass-card text-slate-300 hover:text-white flex items-center gap-1.5 transition border border-slate-800 whitespace-nowrap"><i class="fa-solid fa-right-left text-emerald-400"></i> Market</button>
+        <button id="tabShop" class="tab-btn px-3 py-2 rounded-xl glass-card text-slate-300 hover:text-white flex items-center gap-1.5 transition border border-slate-800 whitespace-nowrap"><i class="fa-solid fa-store text-amber-400"></i> Pack Store</button>
+        <button id="tabClub" class="tab-btn px-3 py-2 rounded-xl glass-card text-slate-300 hover:text-white flex items-center gap-1.5 transition border border-slate-800 whitespace-nowrap"><i class="fa-solid fa-boxes-stacked text-sky-400"></i> Club (<span id="clubCountBadge">0</span>)</button>
+        <button id="tabSeason" class="tab-btn px-3 py-2 rounded-xl glass-card text-slate-300 hover:text-white flex items-center gap-1.5 transition border border-slate-800 whitespace-nowrap"><i class="fa-solid fa-flag-checkered text-emerald-400"></i> League</button>
+        <button id="tabUCL" class="tab-btn px-3 py-2 rounded-xl glass-card text-blue-400 hover:text-blue-300 flex items-center gap-1.5 transition border border-blue-800/60 whitespace-nowrap"><i class="fa-solid fa-star text-amber-400"></i> UCL Knockouts</button>
+        <button id="tabMultiplayer" class="tab-btn px-3 py-2 rounded-xl glass-card text-purple-400 hover:text-purple-300 flex items-center gap-1.5 transition border border-purple-800/60 whitespace-nowrap"><i class="fa-solid fa-globe text-purple-400"></i> Multiplayer Hub</button>
+    </nav>
+
+    <!-- MAIN VIEW CONTAINER -->
+    <main class="flex-1 container mx-auto px-2 sm:px-4 py-4 max-w-6xl">
+
+        <section id="viewSquad" class="flex flex-col lg:flex-row gap-4 items-start justify-center">
+            <div class="w-full lg:w-7/12 flex flex-col gap-3">
+                <div class="glass-card p-3 rounded-2xl flex flex-wrap items-center justify-between gap-2 text-xs">
+                    <div class="flex items-center gap-2">
+                        <label class="text-slate-400 font-bold uppercase text-[11px]">Formation:</label>
+                        <select id="selectFormation" class="bg-slate-900 border border-slate-700 text-amber-400 font-bold rounded-lg px-2.5 py-1 focus:outline-none">
+                            <option value="4-3-3">4-3-3</option>
+                            <option value="4-4-2">4-4-2</option>
+                            <option value="4-2-3-1">4-2-3-1</option>
+                            <option value="3-5-2">3-5-2</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center gap-3 font-mono">
+                        <div><span class="text-slate-400 text-[10px] block leading-none">OVR</span><span id="squadRatingText" class="text-xl font-black text-amber-400 font-display">0</span></div>
+                        <div><span class="text-slate-400 text-[10px] block leading-none">CHEM</span><span id="squadChemText" class="text-xl font-black text-emerald-400 font-display">0%</span></div>
+                    </div>
+                </div>
+
+                <div id="pitchArena" class="glass-pitch pitch-vibrant pitch-pattern-striped w-full aspect-[4/5] sm:aspect-[4/3] rounded-2xl p-3 relative flex flex-col justify-between overflow-hidden shadow-2xl">
+                    <div class="absolute inset-0 pointer-events-none opacity-40 border-2 border-white/70 m-2 rounded-xl flex flex-col justify-between items-center">
+                        <div class="w-32 h-14 border-b-2 border-x-2 border-white/80 bg-white/5"></div>
+                        <div class="w-full border-t-2 border-white/80 relative flex justify-center items-center">
+                            <div class="w-28 h-28 border-2 border-white/80 rounded-full absolute bg-white/5"></div>
+                        </div>
+                        <div class="w-32 h-14 border-t-2 border-x-2 border-white/80 bg-white/5"></div>
+                    </div>
+                    <div id="pitchGrid" class="relative w-full h-full z-10 flex flex-col justify-between py-1"></div>
+                </div>
+
+                <div class="flex items-center justify-between gap-2">
+                    <button id="btnAutoBestSquad" class="px-3.5 py-2 rounded-xl glass-card hover:bg-slate-800 text-slate-300 font-bold text-xs border border-slate-700 transition flex items-center gap-2"><i class="fa-solid fa-wand-magic-sparkles text-amber-400"></i> Auto-Fill Best Squad</button>
+                    <button id="btnClearSquad" class="px-3.5 py-2 rounded-xl glass-card hover:bg-red-950 text-red-300 font-bold text-xs border border-red-900/50 transition flex items-center gap-2"><i class="fa-solid fa-trash-can"></i> Clear Pitch</button>
+                </div>
+            </div>
+
+            <!-- Bench Panel -->
+            <div class="w-full lg:w-5/12 flex flex-col gap-3">
+                <div class="glass-card p-4 rounded-2xl border border-slate-800 flex flex-col gap-3 min-h-[420px]">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                        <h3 class="font-bold text-amber-400 text-sm flex items-center gap-2"><i class="fa-solid fa-users-viewfinder"></i> Bench & Reserves</h3>
+                        <span class="text-[11px] text-slate-400">Player departure risk after seasons</span>
+                    </div>
+                    <input id="benchSearch" type="text" placeholder="Search reserve player..." class="bg-slate-900 border border-slate-800 text-xs text-white rounded-lg px-3 py-1.5 focus:outline-none">
+                    <div id="benchContainer" class="grid grid-cols-3 sm:grid-cols-4 gap-2 overflow-y-auto max-h-[380px] p-1"></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="viewMarket" class="hidden flex-col gap-4">
+            <div class="glass-card p-4 rounded-2xl border border-emerald-500/30 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div>
+                    <h2 class="text-xl font-black text-emerald-400 font-display">TRANSFER MARKET HUB</h2>
+                    <p class="text-xs text-slate-400">Buy star players or list your club inventory for sale.</p>
+                </div>
+                <button id="btnRefreshMarket" class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs transition shadow flex items-center gap-2"><i class="fa-solid fa-arrows-rotate"></i> Refresh Market</button>
+            </div>
+            <div id="marketBuyContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+        </section>
+
+        <section id="viewShop" class="hidden flex-col gap-4">
+            <div class="glass-card p-4 rounded-2xl text-center border border-amber-500/20 mb-2">
+                <h2 class="text-2xl font-black text-amber-400 font-display leading-tight">OFFICIAL FUT PACK STORE (NERFED EARNINGS)</h2>
+                <p class="text-xs text-slate-400">97-99 OVR Walkouts are extremely rare (&lt;5% drop rate). 3 Players per pack.</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div class="glass-card p-4 rounded-2xl border border-amber-800/40 flex flex-col justify-between items-center text-center">
+                    <div class="w-20 h-28 bg-gradient-to-b from-amber-800 to-stone-900 rounded-xl border-2 border-amber-700 flex flex-col items-center justify-center shadow-lg mb-2">
+                        <i class="fa-solid fa-box-open text-amber-500 text-2xl mb-1"></i>
+                        <span class="font-black text-[10px] text-amber-300 font-mono">STANDARD</span>
+                    </div>
+                    <h3 class="font-extrabold text-white text-sm">Standard Pack</h3>
+                    <p class="text-[10px] text-amber-400 font-bold mb-2">3 Players (68-80 OVR)</p>
+                    <button onclick="purchasePack('standard')" class="w-full py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-slate-950 font-black text-[11px] uppercase">Buy ($180)</button>
+                </div>
+
+                <div class="glass-card p-4 rounded-2xl border border-amber-500/50 flex flex-col justify-between items-center text-center">
+                    <div class="w-20 h-28 bg-gradient-to-b from-amber-500 via-amber-700 to-yellow-950 rounded-xl border-2 border-yellow-400 flex flex-col items-center justify-center shadow-lg mb-2">
+                        <i class="fa-solid fa-crown text-amber-300 text-2xl mb-1"></i>
+                        <span class="font-black text-[10px] text-amber-200 font-mono">GOLD RARE</span>
+                    </div>
+                    <h3 class="font-extrabold text-amber-400 text-sm">Gold Rare Pack</h3>
+                    <p class="text-[10px] text-amber-300 font-bold mb-2">3 Players (&lt;5% 97-99)</p>
+                    <button onclick="purchasePack('premium')" class="w-full py-2 rounded-xl bg-amber-500 text-slate-950 font-black text-[11px] uppercase">Buy ($750)</button>
+                </div>
+
+                <div class="glass-card p-4 rounded-2xl border border-emerald-500/50 flex flex-col justify-between items-center text-center">
+                    <div class="w-20 h-28 bg-gradient-to-b from-emerald-600 via-teal-800 to-slate-950 rounded-xl border-2 border-emerald-400 flex flex-col items-center justify-center shadow-lg mb-2">
+                        <i class="fa-solid fa-bolt text-emerald-300 text-2xl mb-1"></i>
+                        <span class="font-black text-[10px] text-emerald-200 font-mono">MEGA PACK</span>
+                    </div>
+                    <h3 class="font-extrabold text-emerald-300 text-sm">Mega Elite Pack</h3>
+                    <p class="text-[10px] text-emerald-200 font-bold mb-2">3 High-Tier Gold & Icon Odds</p>
+                    <button onclick="purchasePack('mega')" class="w-full py-2 rounded-xl bg-emerald-500 text-slate-950 font-black text-[11px] uppercase">Buy ($1,600)</button>
+                </div>
+
+                <div class="glass-card p-4 rounded-2xl border border-purple-500/50 flex flex-col justify-between items-center text-center">
+                    <div class="w-20 h-28 bg-gradient-to-b from-purple-600 via-indigo-800 to-slate-950 rounded-xl border-2 border-purple-400 flex flex-col items-center justify-center shadow-lg mb-2">
+                        <i class="fa-solid fa-star text-purple-200 text-2xl mb-1"></i>
+                        <span class="font-black text-[10px] text-purple-200 font-mono">TOTY SPECIAL</span>
+                    </div>
+                    <h3 class="font-extrabold text-purple-300 text-sm">TOTY & Icons Pack</h3>
+                    <p class="text-[10px] text-purple-200 font-bold mb-2">3 Elite Rated Walkouts</p>
+                    <button onclick="purchasePack('toty')" class="w-full py-2 rounded-xl bg-purple-500 text-slate-950 font-black text-[11px] uppercase">Buy ($2,400)</button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-1 gap-4 mt-2">
+                <div class="glass-card p-5 rounded-2xl border border-sky-400/60 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+                    <div class="flex items-center gap-4">
+                        <div class="w-20 h-28 bg-gradient-to-b from-sky-500 via-blue-700 to-slate-950 rounded-xl border-2 border-sky-300 flex flex-col items-center justify-center shadow-lg shrink-0">
+                            <i class="fa-solid fa-gem text-sky-200 text-3xl mb-1"></i>
+                            <span class="font-black text-[10px] text-sky-200 font-mono">GOAT</span>
+                        </div>
+                        <div>
+                            <h3 class="font-extrabold text-sky-300 text-base">Ultimate GOAT Pack</h3>
+                            <p class="text-xs text-sky-200">Guaranteed maximum walkout rate for 97-99 Messi, Ronaldo, Pelé & Icons.</p>
+                        </div>
+                    </div>
+                    <button onclick="purchasePack('goat')" class="px-8 py-3 rounded-xl bg-gradient-to-r from-sky-400 to-blue-500 text-slate-950 font-black text-xs uppercase shrink-0">Buy ($3,500)</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="viewClub" class="hidden flex-col gap-4">
+            <div class="glass-card p-4 rounded-2xl flex items-center justify-between gap-3 border border-slate-800">
+                <div>
+                    <h2 class="text-xl font-black font-display">CLUB INVENTORY (<span id="clubTotalCount">0</span>)</h2>
+                    <p class="text-xs text-slate-400">Chemistry affects club rating (-0.5 if low) and player departures.</p>
+                </div>
+                <button id="btnQuickSellDuplicates" class="px-4 py-2 rounded-xl bg-amber-500 text-slate-950 font-bold text-xs">Quick Sell Duplicates</button>
+            </div>
+            <div id="clubInventoryGrid" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3 min-h-[300px]"></div>
+        </section>
+
+        <section id="viewSeason" class="hidden flex-col gap-4">
+            <div class="glass-card p-4 rounded-2xl border border-slate-800 flex flex-col gap-4">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <div>
+                        <h3 class="font-extrabold text-emerald-400 text-lg">Domestic League Campaign (38 Matches)</h3>
+                        <p class="text-xs text-slate-400">Finish in the top 5 to qualify for Champions League. 17% chance players leave after season!</p>
+                    </div>
+                    <select id="selectLeagueChoice" class="bg-slate-900 border border-amber-500 text-amber-400 font-bold text-xs rounded-xl px-3 py-1.5">
+                        <option value="epl">Premier League</option>
+                        <option value="laliga">LaLiga</option>
+                        <option value="bundesliga">Bundesliga</option>
+                        <option value="seriea">Serie A</option>
+                        <option value="ligue1">Ligue 1</option>
+                    </select>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button id="btnStartSimulation" disabled class="flex-1 py-3 rounded-xl bg-emerald-500 text-slate-950 font-black text-sm uppercase">Play League Match</button>
+                    <button id="btnFastSim" disabled class="px-5 py-3 rounded-xl glass-card text-xs font-bold border border-slate-700">Simulate Season</button>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                    <div class="lg:col-span-7 bg-slate-950/90 rounded-xl p-3 border border-slate-800 overflow-x-auto max-h-72">
+                        <table class="w-full text-left text-[11px] font-mono">
+                            <thead class="bg-slate-900 text-slate-400 border-b border-slate-800">
+                                <tr>
+                                    <th class="p-1.5">Pos</th>
+                                    <th class="p-1.5">Club</th>
+                                    <th class="p-1.5 text-center">P</th>
+                                    <th class="p-1.5 text-right">Pts</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leagueTableBody"></tbody>
+                        </table>
+                    </div>
+                    <div class="lg:col-span-5 bg-slate-950/90 rounded-xl p-3 border border-slate-800 flex flex-col h-72">
+                        <h4 class="font-bold text-sky-400 text-xs mb-2">Match Commentary</h4>
+                        <div id="matchLogContainer" class="flex-1 overflow-y-auto space-y-2 text-xs font-mono"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="viewUCL" class="hidden flex-col gap-4">
+            <div class="glass-card p-5 rounded-2xl border-2 border-blue-600/80 bg-gradient-to-br from-blue-950 via-slate-950 to-indigo-950 flex flex-col gap-4">
+                <div class="flex justify-between items-center border-b border-blue-800 pb-3">
+                    <h2 class="text-2xl font-black text-blue-300 font-display">UEFA CHAMPIONS LEAGUE (LEG 1 & LEG 2)</h2>
+                    <span id="uclStageDisplay" class="px-3 py-1 bg-blue-900 text-amber-300 font-mono text-xs rounded">32 Club Knockout Table</span>
+                </div>
+
+                <div id="uclLockedNotice" class="p-8 text-center glass-card border border-blue-500/30 rounded-2xl space-y-3">
+                    <h3 class="text-xl font-black text-white">UCL Qualification Required (Top 5 in League)</h3>
+                    <button onclick="document.getElementById('tabSeason').click()" class="px-5 py-2.5 rounded-xl bg-amber-500 text-slate-950 font-black text-xs">Go To League</button>
+                </div>
+
+                <div id="uclActiveArea" class="hidden flex-col gap-4">
+                    <div class="glass-card p-4 rounded-xl border border-blue-700/60 flex flex-col items-center gap-3">
+                        <div class="flex items-center justify-around w-full">
+                            <span id="uclHomeName" class="font-bold text-white">MY SQUAD</span>
+                            <span class="font-mono text-2xl font-black text-amber-400"><span id="uclLeg1Score">0 - 0</span> (Agg)</span>
+                            <span id="uclAwayName" class="font-bold text-white">OPPONENT</span>
+                        </div>
+                        <div class="text-xs text-blue-300" id="uclLegStatus">Playing Leg 1 of 2</div>
+                        <button id="btnPlayUCLLeg" class="px-6 py-2.5 rounded-xl bg-amber-500 text-slate-950 font-black text-xs uppercase">Simulate UCL Leg</button>
+                    </div>
+                    <div id="uclBracketList" class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-mono"></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="viewMultiplayer" class="hidden flex-col gap-4">
+            <div class="glass-card p-5 rounded-2xl border border-purple-500/40 bg-gradient-to-br from-purple-950/60 via-slate-950 to-slate-950 flex flex-col gap-4">
+                <div>
+                    <h2 class="text-2xl font-black text-purple-300 font-display">MULTIPLIER MODES (38-0.app Style)</h2>
+                    <p class="text-xs text-slate-400">Play against real players or AI in 5-season runs with commenter boards, Live Draft, Leagues, and Last One Standing!</p>
+                </div>
+
+                <!-- Mode Selectors -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div class="glass-card p-4 rounded-xl border border-purple-500/30 flex flex-col justify-between">
+                        <div>
+                            <span class="text-[10px] text-red-400 font-mono font-bold uppercase">🔴 LIVE NOW</span>
+                            <h3 class="font-extrabold text-white text-base mt-1">Live Draft</h3>
+                            <p class="text-[11px] text-slate-300 mt-1">Draft in real time with up to 6 players. Race to build the best XI.</p>
+                        </div>
+                        <button onclick="startMultiplayerMode('draft')" class="mt-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs uppercase">Join Live Draft</button>
+                    </div>
+
+                    <div class="glass-card p-4 rounded-xl border border-purple-500/30 flex flex-col justify-between">
+                        <div>
+                            <span class="text-[10px] text-amber-400 font-mono font-bold uppercase">🕑 PLAY ANYTIME</span>
+                            <h3 class="font-extrabold text-white text-base mt-1">5-Season Run Leagues</h3>
+                            <p class="text-[11px] text-slate-300 mt-1">Face off in a 5-season run against 4+ players. Pauses with commenter boards during clashes!</p>
+                        </div>
+                        <button onclick="startMultiplayerMode('leagues')" class="mt-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold text-xs uppercase">Start 5-Season Run</button>
+                    </div>
+
+                    <div class="glass-card p-4 rounded-xl border border-purple-500/30 flex flex-col justify-between">
+                        <div>
+                            <span class="text-[10px] text-blue-400 font-mono font-bold uppercase">💀 SURVIVAL</span>
+                            <h3 class="font-extrabold text-white text-base mt-1">Last One Standing</h3>
+                            <p class="text-[11px] text-slate-300 mt-1">Timed rounds where bottom of the table is cut. Last manager standing wins.</p>
+                        </div>
+                        <button onclick="startMultiplayerMode('survival')" class="mt-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase">Enter Survival</button>
+                    </div>
+                </div>
+
+                <!-- Active Multiplayer Simulation Arena -->
+                <div id="multiplayerArena" class="hidden glass-card p-4 rounded-xl border border-purple-600/50 flex flex-col gap-3">
+                    <div class="flex justify-between items-center border-b border-purple-900 pb-2">
+                        <h3 id="mpArenaTitle" class="font-bold text-purple-300 text-sm">Multiplayer Room: 4 Players Active</h3>
+                        <span id="mpSeasonBadge" class="text-xs font-mono text-amber-400">Season 1 / 5</span>
+                    </div>
+
+                    <div id="mpCommentaryBoard" class="bg-slate-950 p-3 rounded-lg h-44 overflow-y-auto text-xs font-mono space-y-1.5 border border-purple-900/50">
+                        <div class="text-purple-400">Match paused against opponent manager. Commenter board active...</div>
+                    </div>
+
+                    <div class="flex justify-between items-center">
+                        <span id="mpStatusText" class="text-xs text-slate-400">Simulating matches against real player rooms...</span>
+                        <button id="btnContinueMpSim" class="px-5 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs uppercase">Continue Quick Sim</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <div id="packModal" class="fixed inset-0 bg-slate-950/95 backdrop-blur-2xl z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition">
+        <div class="max-w-3xl w-full flex flex-col items-center justify-center text-center">
+            <h3 class="text-amber-400 text-xl font-black mb-3">PACK OPENED (3 PLAYERS)</h3>
+            <div id="revealedCardsGrid" class="flex flex-wrap justify-center gap-4 my-4"></div>
+            <button id="btnClosePack" class="mt-4 px-8 py-3 rounded-2xl bg-amber-500 text-slate-950 font-black text-xs uppercase">Collect & Send to Club</button>
+        </div>
+    </div>
+
+    <div id="swapModal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition">
+        <div class="glass-card max-w-lg w-full p-5 rounded-2xl border border-slate-700 flex flex-col gap-3">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                <h3 id="swapModalTitle" class="font-black text-amber-400 text-base">Assign Player</h3>
+                <button id="btnCloseSwap" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="swapEligibleGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-2 overflow-y-auto max-h-[320px] p-1"></div>
+            <button id="btnRemoveFromPitch" class="py-2 rounded-lg bg-red-950 text-red-300 font-bold text-xs">Clear Position</button>
+        </div>
+    </div>
+
+    <!-- Sign In Modal -->
+    <div id="signInModal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition">
+        <div class="glass-card max-w-sm w-full p-5 rounded-2xl border border-slate-700 flex flex-col gap-3 text-center">
+            <h3 class="font-bold text-white text-base">Sign In / Manager Profile</h3>
+            <input id="inputUsername" type="text" placeholder="Enter manager name..." class="bg-slate-900 border border-slate-800 text-xs rounded-lg px-3 py-2 text-white">
+            <button id="btnSaveUsername" class="py-2.5 rounded-xl bg-blue-600 text-white font-black text-xs uppercase">Save Profile</button>
+        </div>
+    </div>
+
+    <script>
+        const MASTER_PLAYERS_DATABASE = [
+            { id: 'messi_11', name: 'L. Messi', pos: 'RW', rating: 99, club: 'FC Barcelona', tier: 'goat', value: 3500 },
+            { id: 'cr7_17', name: 'C. Ronaldo', pos: 'LW', rating: 99, club: 'Real Madrid', tier: 'goat', value: 3500 },
+            { id: 'pele_70', name: 'Pelé', pos: 'ST', rating: 98, club: 'Brazil', tier: 'goat', value: 3200 },
+            { id: 'maradona_86', name: 'D. Maradona', pos: 'CAM', rating: 98, club: 'Argentina', tier: 'goat', value: 3200 },
+            { id: 'r9_02', name: 'Ronaldo Nazário', pos: 'ST', rating: 97, club: 'Brazil', tier: 'goat', value: 3000 },
+            { id: 'zidane_98', name: 'Z. Zidane', pos: 'CAM', rating: 97, club: 'France', tier: 'goat', value: 3000 },
+            { id: 'maldini_07', name: 'P. Maldini', pos: 'CB', rating: 97, club: 'AC Milan', tier: 'goat', value: 2900 },
+            { id: 'henry_04', name: 'T. Henry', pos: 'ST', rating: 97, club: 'Arsenal', tier: 'goat', value: 2900 },
+            { id: 'buffon_06', name: 'G. Buffon', pos: 'GK', rating: 96, club: 'Juventus', tier: 'goat', value: 2700 },
+            
+            // Elite & Defenders Expansion (+65 players)
+            { id: 'mbappe_24', name: 'K. Mbappé', pos: 'ST', rating: 94, club: 'Real Madrid', tier: 'gold-rare', value: 2200 },
+            { id: 'haaland_24', name: 'E. Haaland', pos: 'ST', rating: 93, club: 'Man City', tier: 'gold-rare', value: 2000 },
+            { id: 'bellingham_24', name: 'J. Bellingham', pos: 'CM', rating: 92, club: 'Real Madrid', tier: 'gold-rare', value: 1900 },
+            { id: 'vandijk_24', name: 'V. van Dijk', pos: 'CB', rating: 90, club: 'Liverpool', tier: 'gold-rare', value: 1500 },
+            { id: 'saliba_24', name: 'W. Saliba', pos: 'CB', rating: 88, club: 'Arsenal', tier: 'gold-rare', value: 1300 },
+            { id: 'rubendias_24', name: 'Rúben Dias', pos: 'CB', rating: 88, club: 'Man City', tier: 'gold-rare', value: 1200 },
+            { id: 'bastoni_24', name: 'A. Bastoni', pos: 'CB', rating: 87, club: 'Inter Milan', tier: 'gold-rare', value: 1100 },
+            { id: 'marquinhos_24', name: 'Marquinhos', pos: 'CB', rating: 87, club: 'PSG', tier: 'gold-rare', value: 1100 },
+            { id: 'theo_24', name: 'T. Hernández', pos: 'LB', rating: 87, club: 'AC Milan', tier: 'gold-rare', value: 1100 },
+            { id: 'trent_24', name: 'T. Alexander-Arnold', pos: 'RB', rating: 86, club: 'Liverpool', tier: 'gold-rare', value: 950 },
+            { id: 'carvajal_24', name: 'D. Carvajal', pos: 'RB', rating: 86, club: 'Real Madrid', tier: 'gold-rare', value: 950 },
+            { id: 'davies_24', name: 'A. Davies', pos: 'LB', rating: 85, club: 'Bayern Munich', tier: 'gold-rare', value: 900 },
+            { id: 'cubarsi_24', name: 'P. Cubarsí', pos: 'CB', rating: 81, club: 'FC Barcelona', tier: 'silver', value: 350 },
+            { id: 'quansah_24', name: 'J. Quansah', pos: 'CB', rating: 77, club: 'Liverpool', tier: 'bronze', value: 150 },
+            { id: 'mcnamara_24', name: 'L. McNamara', pos: 'LB', rating: 72, club: 'Celtic', tier: 'bronze', value: 80 },
+            { id: 'obrien_24', name: 'J. O\'Brien', pos: 'RB', rating: 70, club: 'Everton', tier: 'bronze', value: 60 },
+            { id: 'schmidt_24', name: 'K. Schmidt', pos: 'GK', rating: 71, club: 'Augsburg', tier: 'bronze', value: 70 },
+            // Add remaining diverse roster
+            { id: 'rodri_24', name: 'Rodri', pos: 'CDM', rating: 92, club: 'Man City', tier: 'gold-rare', value: 1800 },
+            { id: 'kane_24', name: 'H. Kane', pos: 'ST', rating: 91, club: 'Bayern Munich', tier: 'gold-rare', value: 1700 },
+            { id: 'salah_24', name: 'M. Salah', pos: 'RW', rating: 91, club: 'Liverpool', tier: 'gold-rare', value: 1700 },
+            { id: 'courtois_24', name: 'T. Courtois', pos: 'GK', rating: 90, club: 'Real Madrid', tier: 'gold-rare', value: 1500 },
+            { id: 'wirtz_24', name: 'F. Wirtz', pos: 'CAM', rating: 89, club: 'Bayer Leverkusen', tier: 'gold-rare', value: 1400 },
+            { id: 'musiala_24', name: 'J. Musiala', pos: 'CAM', rating: 89, club: 'Bayern Munich', tier: 'gold-rare', value: 1400 },
+            { id: 'saka_24', name: 'B. Saka', pos: 'RW', rating: 88, club: 'Arsenal', tier: 'gold-rare', value: 1300 },
+            { id: 'valverde_24', name: 'F. Valverde', pos: 'CM', rating: 88, club: 'Real Madrid', tier: 'gold-rare', value: 1300 },
+            { id: 'lautaro_24', name: 'L. Martínez', pos: 'ST', rating: 88, club: 'Inter Milan', tier: 'gold-rare', value: 1200 },
+            { id: 'rice_24', name: 'D. Rice', pos: 'CDM', rating: 87, club: 'Arsenal', tier: 'gold-rare', value: 1100 },
+            { id: 'son_24', name: 'H.M. Son', pos: 'LW', rating: 87, club: 'Tottenham', tier: 'gold-rare', value: 1100 },
+            { id: 'griezmann_24', name: 'A. Griezmann', pos: 'CAM', rating: 87, club: 'Atlético Madrid', tier: 'gold-rare', value: 1100 },
+            { id: 'pedri_24', name: 'Pedri', pos: 'CM', rating: 86, club: 'FC Barcelona', tier: 'gold-rare', value: 1000 },
+            { id: 'kvaratskhelia_24', name: 'K. Kvaratskhelia', pos: 'LW', rating: 86, club: 'Napoli', tier: 'gold-rare', value: 1000 },
+            { id: 'leao_24', name: 'R. Leão', pos: 'LW', rating: 86, club: 'AC Milan', tier: 'gold-rare', value: 1000 },
+            { id: 'donnarumma_24', name: 'G. Donnarumma', pos: 'GK', rating: 88, club: 'PSG', tier: 'gold-rare', value: 1200 },
+            { id: 'alisson_24', name: 'Alisson', pos: 'GK', rating: 89, club: 'Liverpool', tier: 'gold-rare', value: 1300 },
+            { id: 'ederson_24', name: 'Ederson', pos: 'GK', rating: 88, club: 'Man City', tier: 'gold-rare', value: 1150 },
+            { id: 'kimmich_24', name: 'J. Kimmich', pos: 'CDM', rating: 86, club: 'Bayern Munich', tier: 'gold-rare', value: 950 },
+            { id: 'goretzka_24', name: 'L. Goretzka', pos: 'CM', rating: 85, club: 'Bayern Munich', tier: 'gold-rare', value: 850 },
+            { id: 'nico_24', name: 'Nico Williams', pos: 'LW', rating: 85, club: 'Athletic Bilbao', tier: 'gold-rare', value: 850 },
+            { id: 'rodrygo_24', name: 'Rodrygo', pos: 'RW', rating: 85, club: 'Real Madrid', tier: 'gold-rare', value: 850 },
+            { id: 'watkins_24', name: 'O. Watkins', pos: 'ST', rating: 85, club: 'Aston Villa', tier: 'gold-rare', value: 800 },
+            { id: 'macallister_24', name: 'A. Mac Allister', pos: 'CM', rating: 85, club: 'Liverpool', tier: 'gold-rare', value: 800 },
+            { id: 'alvarez_24', name: 'J. Álvarez', pos: 'ST', rating: 85, club: 'Atlético Madrid', tier: 'gold-rare', value: 850 },
+            { id: 'guimaraes_24', name: 'B. Guimarães', pos: 'CM', rating: 85, club: 'Newcastle', tier: 'gold-rare', value: 800 },
+            { id: 'bruno_24', name: 'Bruno Fernandes', pos: 'CAM', rating: 87, club: 'Man United', tier: 'gold-rare', value: 1100 },
+            { id: 'gordon_24', name: 'A. Gordon', pos: 'LW', rating: 82, club: 'Newcastle', tier: 'silver', value: 400 },
+            { id: 'mainoo_24', name: 'K. Mainoo', pos: 'CM', rating: 81, club: 'Man United', tier: 'silver', value: 350 },
+            { id: 'echeverri_24', name: 'C. Echeverri', pos: 'CAM', rating: 78, club: 'Man City', tier: 'silver', value: 250 },
+            { id: 'endrick_24', name: 'Endrick', pos: 'ST', rating: 80, club: 'Real Madrid', tier: 'silver', value: 300 },
+            { id: 'wharton_24', name: 'A. Wharton', pos: 'CDM', rating: 78, club: 'Crystal Palace', tier: 'silver', value: 200 },
+            { id: 'tel_24', name: 'M. Tel', pos: 'ST', rating: 78, club: 'Bayern Munich', tier: 'silver', value: 200 },
+            { id: 'zirkzee_24', name: 'J. Zirkzee', pos: 'ST', rating: 80, club: 'Man United', tier: 'silver', value: 280 },
+            { id: 'savinho_24', name: 'Sávio', pos: 'RW', rating: 82, club: 'Man City', tier: 'silver', value: 380 }
+        ];
+
+        function purchasePack(type) {
+            let cost = type === 'standard' ? 180 : type === 'premium' ? 750 : type === 'mega' ? 1600 : type === 'toty' ? 2400 : 3500;
+            if (state.cash < cost) {
+                alert("Insufficient club funds!");
+                return;
+            }
+            state.cash -= cost;
+            updateHUD();
+
+            let pulled = [];
+            for (let i = 0; i < 3; i++) {
+                let rand = Math.random() * 100;
+                let candidate;
+                
+                let goatChance = type === 'goat' ? 22 : type === 'toty' ? 12 : type === 'mega' ? 7 : 4.5;
+                if (rand < goatChance) {
+                    const goats = MASTER_PLAYERS_DATABASE.filter(p => p.tier === 'goat');
+                    candidate = goats[Math.floor(Math.random() * goats.length)];
+                } else if (rand < 45 || type === 'toty' || type === 'mega') {
+                    const golds = MASTER_PLAYERS_DATABASE.filter(p => p.tier === 'gold-rare');
+                    candidate = golds[Math.floor(Math.random() * golds.length)];
+                } else {
+                    const silvers = MASTER_PLAYERS_DATABASE.filter(p => p.tier === 'silver' || p.tier === 'bronze');
+                    candidate = silvers[Math.floor(Math.random() * silvers.length)];
+                }
+                const playerObj = { ...candidate, instanceId: crypto.randomUUID() };
+                pulled.push(playerObj);
+                
+                if (state.autoSellDuplicates) {
+                    state.cash += Math.round(playerObj.value * 0.4);
+                } else {
+                    state.clubInventory.push(playerObj);
+                }
+            }
+
+            renderPackModal(pulled);
+        }
+
+        function renderPackModal(players) {
+            const grid = document.getElementById('revealedCardsGrid');
+            grid.innerHTML = players.map(p => `
+                <div class="fut-card ${p.tier === 'goat' ? 'goat-card' : p.tier} p-3 w-32 h-44 flex flex-col justify-between items-center text-center">
+                    <span class="font-mono font-black text-sm">${p.rating}</span>
+                    <span class="font-extrabold text-xs">${p.name}</span>
+                    <span class="text-[9px] opacity-80">${p.club}</span>
+                </div>
+            `).join('');
+            const modal = document.getElementById('packModal');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            document.getElementById('btnClosePack').onclick = () => {
+                modal.classList.add('opacity-0', 'pointer-events-none');
+                updateHUD();
+                renderBench();
+            };
+        }
+
+        document.getElementById('selectFormation').addEventListener('change', (e) => {
+            state.selectedFormation = e.target.value;
+            state.pitchSquad = {};
+            renderPitch();
+            calculateSquadStats();
+        });
+
+        function renderPitch() {
+            const grid = document.getElementById('pitchGrid');
+            grid.innerHTML = '';
+            const layout = FORMATIONS[state.selectedFormation];
+
+            layout.forEach(slot => {
+                const player = state.pitchSquad[slot.key];
+                const el = document.createElement('div');
+                el.className = 'absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer flex flex-col items-center';
+                el.style.top = slot.top;
+                el.style.left = slot.left;
+
+                if (player) {
+                    el.innerHTML = `
+                        <div class="w-12 h-16 sm:w-16 sm:h-20 fut-card ${player.tier === 'goat' ? 'goat-card' : player.tier} p-1 flex flex-col justify-between items-center text-center">
+                            <span class="text-[9px] font-mono">${player.rating}</span>
+                            <span class="text-[9px] font-bold truncate">${player.name.split(' ').pop()}</span>
+                        </div>
+                    `;
+                } else {
+                    el.innerHTML = `
+                        <div class="w-12 h-16 sm:w-16 sm:h-20 rounded-xl border-2 border-dashed border-white/60 bg-black/30 slot-pulse flex flex-col items-center justify-center text-white/80">
+                            <i class="fa-solid fa-plus text-xs"></i>
+                            <span class="text-[9px] font-mono">${slot.label}</span>
+                        </div>
+                    `;
+                }
+                el.onclick = () => openSwapModal(slot.key, slot.label);
+                grid.appendChild(el);
+            });
+            calculateSquadStats();
+        }
+
+        function calculateSquadStats() {
+            const layout = FORMATIONS[state.selectedFormation];
+            const filled = layout.filter(s => state.pitchSquad[s.key]);
+            if (filled.length === 0) {
+                document.getElementById('squadRatingText').innerText = '0';
+                document.getElementById('squadChemText').innerText = '0%';
+                return;
+            }
+            let total = 0;
+            filled.forEach(s => total += state.pitchSquad[s.key].rating);
+            let avg = Math.round(total / layout.length);
+            
+            // Chemistry affects rating (-0.5 or penalty if low)
+            let chem = filled.length === layout.length ? 95 : 50;
+            if (chem < 70) avg -= 1; // Rating penalty
+
+            document.getElementById('squadRatingText').innerText = avg;
+            document.getElementById('squadChemText').innerText = `${chem}%`;
+        }
+
+        function renderBench() {
+            const container = document.getElementById('benchContainer');
+            container.innerHTML = state.clubInventory.map(p => `
+                <div onclick="assignPlayer('${p.instanceId}')" class="fut-card ${p.tier === 'goat' ? 'goat-card' : p.tier} p-2 cursor-pointer flex flex-col items-center text-center">
+                    <span class="text-[9px] font-mono">${p.rating}</span>
+                    <span class="text-[9px] font-bold truncate w-full">${p.name}</span>
+                </div>
+            `).join('');
+        }
+
+        let selectedSwapSlot = null;
+        function openSwapModal(slotKey, label) {
+            selectedSwapSlot = slotKey;
+            const modal = document.getElementById('swapModal');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            const grid = document.getElementById('swapEligibleGrid');
+            grid.innerHTML = state.clubInventory.map(p => `
+                <div onclick="selectPlayerForSlot('${p.instanceId}')" class="fut-card ${p.tier} p-2 cursor-pointer flex flex-col items-center">
+                    <span class="text-[9px]">${p.rating} ${p.pos}</span>
+                    <span class="text-[10px] font-bold">${p.name}</span>
+                </div>
+            `).join('');
+        }
+
+        function selectPlayerForSlot(instanceId) {
+            const player = state.clubInventory.find(p => p.instanceId === instanceId);
+            if (player) {
+                state.pitchSquad[selectedSwapSlot] = player;
+                renderPitch();
+                renderBench();
+            }
+            document.getElementById('swapModal').classList.add('opacity-0', 'pointer-events-none');
+        }
+
+        document.getElementById('btnCloseSwap').onclick = () => document.getElementById('swapModal').classList.add('opacity-0', 'pointer-events-none');
+
+        function initLeagueSeason() {
+            const teams = LEAGUES_DATA[state.activeLeagueKey].teams;
+            state.leagueSeason.table = teams.map(name => ({ name, p: 0, w: 0, d: 0, l: 0, pts: 0 }));
+            state.leagueSeason.currentFixture = 0;
+            renderLeagueTable();
+        }
+
+        function renderLeagueTable() {
+            const tbody = document.getElementById('leagueTableBody');
+            state.leagueSeason.table.sort((a,b) => b.pts - a.pts || b.w - a.w);
+            tbody.innerHTML = state.leagueSeason.table.map((t, idx) => `
+                <tr class="border-b border-slate-900 ${idx < 5 ? 'bg-emerald-950/40 text-emerald-300' : ''}">
+                    <td class="p-1.5 font-bold">${idx + 1}</td>
+                    <td class="p-1.5">${t.name}</td>
+                    <td class="p-1.5 text-center">${t.p}</td>
+                    <td class="p-1.5 text-right font-bold">${t.pts}</td>
+                </tr>
+            `).join('');
+        }
+
+        document.getElementById('btnStartSimulation').addEventListener('click', () => {
+            if (state.leagueSeason.currentFixture >= 38) {
+                alert("Season already completed!");
+                return;
+            }
+            state.leagueSeason.currentFixture++;
+            // Simulate match
+            state.leagueSeason.table[0].p++;
+            state.leagueSeason.table[0].pts += 3;
+            state.leagueSeason.table[0].w++;
+            renderLeagueTable();
+
+            if (state.leagueSeason.currentFixture >= 38) {
+                checkSeasonDepartures();
+            }
+        });
+
+        function checkSeasonDepartures() {
+            // 17% chance players leave after a season
+            let remaining = [];
+            let departedCount = 0;
+            state.clubInventory.forEach(p => {
+                if (Math.random() < 0.17) {
+                    departedCount++;
+                } else {
+                    remaining.push(p);
+                }
+            });
+            state.clubInventory = remaining;
+            renderBench();
+            alert(`Season finished! ${departedCount} players left the club due to contract expiry / departure chance (17%).`);
+            
+            // Check UCL qualification (Top 5)
+            const myRank = state.leagueSeason.table.findIndex(t => t.name === LEAGUES_DATA[state.activeLeagueKey].teams[0]) + 1;
+            if (myRank <= 5) {
+                state.ucl.qualified = true;
+                document.getElementById('uclLockedNotice').classList.add('hidden');
+                document.getElementById('uclActiveArea').classList.remove('hidden');
+            }
+        }
+
+        function startMultiplayerMode(mode) {
+            document.getElementById('multiplayerArena').classList.remove('hidden');
+            const board = document.getElementById('mpCommentaryBoard');
+            board.innerHTML = `<div class="text-purple-300">Room created for Multiplayer Mode: <strong>${mode.toUpperCase()}</strong> with 4 players.</div>`;
+            
+            setTimeout(() => {
+                board.innerHTML += `<div class="text-amber-300">⏸ Match paused against actual player opponent. Commenter board active.</div>`;
+                board.innerHTML += `<div class="text-slate-300">"What an incredible tactical shift by the manager here in OVR 94 vs OVR 92!"</div>`;
+            }, 800);
+        }
+
+        document.getElementById('btnContinueMpSim').onclick = () => {
+            const board = document.getElementById('mpCommentaryBoard');
+            board.innerHTML += `<div class="text-emerald-400">▶ Resuming quick sim. You won the fixture 2-1 and advance in the 5-season run!</div>`;
+        };
+
+        // Sign In Modal Logic
+        document.getElementById('btnSignInModal').onclick = () => document.getElementById('signInModal').classList.remove('opacity-0', 'pointer-events-none');
+        document.getElementById('btnSaveUsername').onclick = () => {
+            const val = document.getElementById('inputUsername').value.trim();
+            if (val) state.username = val;
+            updateHUD();
+            document.getElementById('signInModal').classList.add('opacity-0', 'pointer-events-none');
+        };
+    </script>
+</body>
+</html>
